@@ -9,7 +9,6 @@ export const translations = {
     navFinder: 'Eligibility Checker',
     navHowItWorks: 'How It Works',
     navFaq: 'FAQ',
-    navAdmin: 'Admin Portal',
     saved: 'Saved',
     signIn: 'Sign In',
     signOut: 'Sign Out',
@@ -129,22 +128,6 @@ export const translations = {
     step3Desc: 'Examine eligible schemes categorized by confidence, with clear benefits and required documents.',
     step4Title: 'Prepare & Apply Directly',
     step4Desc: 'Use our interactive document checklist and visit the verified official government portal.',
-    
-    // Admin
-    adminTitle: 'SchemeSathi Administrator Portal',
-    adminLoginPrompt: 'Sign in to manage government schemes, update eligibility criteria, and review verifications.',
-    adminEmail: 'Admin Email',
-    adminPassword: 'Password',
-    adminSignInBtn: 'Sign In as Administrator',
-    addSchemeBtn: '+ Add New Scheme',
-    editScheme: 'Edit Scheme',
-    deleteScheme: 'Delete',
-    activeStatus: 'Active',
-    inactiveStatus: 'Inactive',
-    totalSchemes: 'Total Schemes',
-    activeSchemes: 'Active Schemes',
-    lastVerifiedDate: 'Last Verified',
-    
     // Modals
     aboutScheme: 'About the Scheme',
     purposeScheme: 'Purpose of the Scheme',
@@ -165,7 +148,6 @@ export const translations = {
     navFinder: 'అర్హత తనిఖీ',
     navHowItWorks: 'ఎలా పనిచేస్తుంది?',
     navFaq: 'తరచుగా అడిగే ప్రశ్నలు',
-    navAdmin: 'అడ్మిన్ పోర్టల్',
     saved: 'భద్రపరిచినవి',
     signIn: 'లాగిన్',
     signOut: 'లాగౌట్',
@@ -285,22 +267,6 @@ export const translations = {
     step3Desc: 'అర్హతను బట్టి వర్గీకరించబడిన పథకాలు, వాటి ప్రయోజనాలు మరియు అవసరమైన పత్రాలను తనిఖీ చేయండి.',
     step4Title: 'అధికారిక పోర్టల్‌లో దరఖాస్తు చేయండి',
     step4Desc: 'మా ఇంటరాక్టివ్ చెక్‌లిస్ట్ ద్వారా పత్రాలను సరిచూసుకుని అధికారిక పోర్టల్‌లో సులభంగా దరఖాస్తు చేయండి.',
-    
-    // Admin
-    adminTitle: 'స్కీమ్‌సాథి అడ్మినిస్ట్రేటర్ పోర్టల్',
-    adminLoginPrompt: 'పథకాలను నిర్వహించడానికి మరియు అర్హత నిబంధనలను నవీకరించడానికి లాగిన్ అవ్వండి.',
-    adminEmail: 'అడ్మిన్ ఈమెయిల్',
-    adminPassword: 'పాస్‌వర్డ్',
-    adminSignInBtn: 'అడ్మిన్‌గా లాగిన్ చేయండి',
-    addSchemeBtn: '+ కొత్త పథకాన్ని జోడించండి',
-    editScheme: 'సవరించండి',
-    deleteScheme: 'తొలగించండి',
-    activeStatus: 'చురుగ్గా ఉంది',
-    inactiveStatus: 'నిష్క్రియం',
-    totalSchemes: 'మొత్తం పథకాలు',
-    activeSchemes: 'చురుకైన పథకాలు',
-    lastVerifiedDate: 'చివరిగా ధృవీకరించిన తేదీ',
-    
     // Modals
     aboutScheme: 'పథకం గురించి',
     purposeScheme: 'పథకం ముఖ్య ఉద్దేశ్యం',

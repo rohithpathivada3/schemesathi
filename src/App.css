@@ -360,24 +360,6 @@ h1, h2, h3, p { margin-top: 0; }
   color: #b2c2b0;
 }
 
-/* Admin Nav Button */
-.admin-nav-button {
-  height: 91px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: 0;
-  color: #4a6755;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.admin-nav-button:hover {
-  color: #2b4534;
-}
-
 /* Saved Bubble */
 .saved-count-bubble {
   background: #3d634d;
@@ -1343,21 +1325,6 @@ h1, h2, h3, p { margin-top: 0; }
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.admin-demo-creds {
-  background: #f4f8ee;
-  border: 1px solid #d2e4cb;
-  border-radius: 7px;
-  padding: 10px 12px;
-  font-size: 11px;
-  color: #3b5f42;
-  margin-bottom: 14px;
-}
-.admin-demo-creds code {
-  background: #e2eedc;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-family: monospace;
 }
 .admin-form {
   display: grid;

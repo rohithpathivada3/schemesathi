@@ -1,30 +1,12 @@
 import { getDatabase } from './database.mjs'
-import crypto from 'node:crypto'
-import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export function hashPassword(password) {
-  const salt = 'schemesathi_salt_2026'
-  return crypto.createHash('sha256').update(password + salt).digest('hex')
-}
-
 export function seedDatabase(force = false) {
   const db = getDatabase()
-
-  // 1. Seed default admin if not exists
-  const existingAdmin = db.prepare('SELECT id FROM admin_users WHERE email = ?').get('admin@schemesathi.in')
-  if (!existingAdmin) {
-    const passwordHash = hashPassword('Admin@12345')
-    db.prepare(`
-      INSERT INTO admin_users (email, password_hash, name, role)
-      VALUES (?, ?, ?, ?)
-    `).run('admin@schemesathi.in', passwordHash, 'System Administrator', 'super_admin')
-    console.log('Seeded default admin: admin@schemesathi.in / Admin@12345')
-  }
 
   const countRow = db.prepare('SELECT COUNT(*) as count FROM schemes').get()
   if (countRow.count > 0 && !force) {

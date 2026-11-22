@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { ArrowDownRight, ArrowRight, Check, ExternalLink, HandHeart, Landmark, ShieldCheck, Sparkles, Users } from 'lucide-react'
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import { schemes as initialSchemes, type Scheme } from './data/schemes'
 import { evaluateSchemes, filterSchemesForProfile, type CitizenProfile } from './lib/eligibility'
 import { translations, type Language } from './data/translations'
@@ -11,15 +11,6 @@ import { ExploreSchemes } from './components/ExploreSchemes'
 import { HowItWorks } from './components/HowItWorks'
 import { WhyChooseSection } from './components/WhyChooseSection'
 import { FAQSection } from './components/FAQSection'
-import { AdminPortal } from './components/AdminPortal'
-import { ProtectedRoute } from './components/ProtectedRoute'
-import { AuthPage } from './pages/AuthPage'
-import { ProfilePage } from './pages/ProfilePage'
-import { DashboardPage } from './pages/DashboardPage'
-import { SavedSchemesPage } from './pages/SavedSchemesPage'
-import { ActivityPage } from './pages/ActivityPage'
-import { useAuth } from './lib/AuthContext'
-import { supabase } from './lib/supabase'
 import './App.css'
 
 const initialProfileData: FormProfileData = {
@@ -44,9 +35,8 @@ const initialProfileData: FormProfileData = {
 function App() {
   const [lang, setLang] = useState<Language>('en')
   const t = translations[lang]
-  const { user } = useAuth()
 
-  const [schemesList, setSchemesList] = useState<Scheme[]>(() => {
+  const [schemesList] = useState<Scheme[]>(() => {
     try {
       const saved = localStorage.getItem('schemesathi_custom_schemes')
       return saved ? JSON.parse(saved) : initialSchemes
@@ -66,23 +56,11 @@ function App() {
     }
   })
   const [showSavedView, setShowSavedView] = useState(false)
-  const [adminOpen, setAdminOpen] = useState(false)
   useEffect(() => {
     try {
       localStorage.setItem('schemesathi_saved_ids', JSON.stringify(saved))
     } catch {}
   }, [saved])
-
-  useEffect(() => {
-    if (!supabase || !user) return
-    supabase
-      .from('saved_schemes')
-      .select('scheme_id')
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        if (data) setSaved(data.map((row) => row.scheme_id))
-      })
-  }, [user])
 
   const handleProfileChange = (key: keyof FormProfileData, value: string) => {
     setProfileData((prev) => ({ ...prev, [key]: value }))
@@ -93,30 +71,10 @@ function App() {
     setApplied(false)
   }
 
-  const handleToggleSaved = async (id: string) => {
-    const isSaved = saved.includes(id)
+  const handleToggleSaved = (id: string) => {
     setSaved((current) =>
-      isSaved ? current.filter((item) => item !== id) : [...current, id]
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     )
-
-    if (supabase && user) {
-      if (isSaved) {
-        await supabase
-          .from('saved_schemes')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('scheme_id', id)
-      } else {
-        await supabase.from('saved_schemes').insert({ user_id: user.id, scheme_id: id })
-      }
-    }
-  }
-
-  const handleUpdateSchemes = (updated: Scheme[]) => {
-    setSchemesList(updated)
-    try {
-      localStorage.setItem('schemesathi_custom_schemes', JSON.stringify(updated))
-    } catch {}
   }
 
   // Construct structured CitizenProfile for eligibility engine
@@ -170,14 +128,6 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<AuthPage mode="login" />} />
-      <Route path="/register" element={<AuthPage mode="register" />} />
-      <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
-      <Route path="/reset-password" element={<AuthPage mode="reset" />} />
-      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-      <Route path="/saved" element={<ProtectedRoute><SavedSchemesPage /></ProtectedRoute>} />
-      <Route path="/activity" element={<ProtectedRoute><ActivityPage /></ProtectedRoute>} />
       <Route path="/" element={
     <div className="app-shell">
       {/* 1. Header & Navigation */}
@@ -190,7 +140,6 @@ function App() {
           document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }}
         isSavedViewActive={showSavedView}
-        onOpenAdmin={() => setAdminOpen(true)}
       />
 
       <main id="home">
@@ -358,18 +307,9 @@ function App() {
         </div>
       </footer>
 
-      {/* 10. Administrator Dashboard Modal */}
-      {adminOpen && (
-        <AdminPortal
-          schemes={schemesList}
-          lang={lang}
-          onClose={() => setAdminOpen(false)}
-          onUpdateSchemes={handleUpdateSchemes}
-        />
-      )}
-
     </div>
       } />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

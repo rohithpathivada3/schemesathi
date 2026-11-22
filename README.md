@@ -2,7 +2,7 @@
 
 **SchemeSathi** is a modern, responsive, user-friendly full-stack web application designed to help Indian citizens discover Central Government and State Government (including extensive Andhra Pradesh) welfare schemes they may qualify for.
 
-The platform provides intelligent, rule-based eligibility evaluation, interactive document checklists, comprehensive scheme information (benefits, step-by-step application instructions, and official links), full bilingual support in **English** and **Telugu (తెలుగు)**, and a protected **Administrator Portal** backed by an SQLite database.
+The platform is publicly accessible without accounts or login. It provides rule-based eligibility discovery, interactive document checklists, comprehensive scheme information (benefits, application instructions, and official links), and bilingual support in **English** and **Telugu (తెలుగు)**.
 
 ---
 
@@ -42,19 +42,14 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 5. **Interactive Document Checklist**:
    - Live checklist with checkboxes for each required document.
    - Visual progress bar showing completion percentage and remaining documents needed.
-   - LocalStorage persistence and one-click print feature.
+   - LocalStorage persistence and one-click print feature. Saved schemes and checklist state stay on the user's device.
 
 6. **Search & Filter Directory**:
    - Instant search across scheme names, departments, and keywords.
    - Filter by State (Central Pan-India, Andhra Pradesh, All States).
    - Filter by Category (Agriculture, Health, Education, Pension, Business/MSME, Housing & Energy, Women & Child, Financial Assistance).
 
-7. **Administrator Dashboard with SQLite Database**:
-   - Protected with administrator authentication (email & SHA-256 hashed password).
-   - Complete CRUD operations: Add new schemes, edit details, delete outdated records, update criteria, and toggle active/inactive status.
-   - Metric cards showing total schemes, active count, and category distributions.
-
-8. **Official Government Sources**:
+7. **Official Government Sources**:
    - Information verified and linked with official portals:
      - [myScheme Portal](https://www.myscheme.gov.in/)
      - [National Portal of India](https://www.india.gov.in/)
@@ -72,8 +67,7 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19, Vite, TypeScript, Lucide Icons, CSS3 (Modern Responsive Design).
-- **Database**: Supabase PostgreSQL for accounts and user data; the existing SQLite backend remains available for public local scheme fallback.
-- **Authentication**: Supabase Auth with email verification and password recovery.
+- **Backend**: Node.js REST API with SQLite scheme data and an in-browser fallback dataset.
 - **Testing**: Vitest (Unit and integration tests for eligibility rules, API, and bilingual translations).
 
 ---
@@ -88,16 +82,16 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 │
 ├── server/                    # Backend API & Database
 │   ├── db/
-│   │   ├── schema.sql         # SQLite DDL schema (schemes, criteria, docs, steps, admins)
+│   │   ├── schema.sql         # SQLite DDL schema (schemes, criteria, documents, steps)
 │   │   ├── database.mjs       # SQLite connection manager (node:sqlite DatabaseSync)
 │   │   ├── seed.mjs           # Database seeder with Central & AP verified schemes
 │   │   └── schemesathi.db     # SQLite physical database file
-│   └── server.mjs             # REST API server (CORS, JSON routing, Auth, Evaluation, CRUD)
+│   └── server.mjs             # REST API server (health, scheme lookup, evaluation)
 │
 ├── src/                       # Frontend React Application
 │   ├── assets/                # Static brand graphics and icons
 │   ├── components/            # Modular React components
-│   │   ├── Navbar.tsx         # Header, brand, language switcher, saved pill, admin button
+│   │   ├── Navbar.tsx         # Header, brand, language switcher, saved schemes
 │   │   ├── EligibilityForm.tsx# Multi-tab citizen profile input form
 │   │   ├── EligibilityDashboard.tsx # Results dashboard (Category A, B, C)
 │   │   ├── SchemeDetailModal.tsx   # 12-point scheme detail dialog
@@ -106,8 +100,6 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 │   │   ├── HowItWorks.tsx     # 4-step workflow guide
 │   │   ├── WhyChooseSection.tsx # Key citizen benefits & trust markers
 │   │   ├── FAQSection.tsx     # Interactive FAQ accordion
-│   │   ├── AdminPortal.tsx    # Administrator authentication & scheme management
-│   │   └── ProtectedRoute.tsx # Client-side protected route guard
 │   │
 │   ├── data/
 │   │   ├── schemes.ts         # Verified scheme dataset & criteria models
@@ -118,8 +110,6 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 │   │   ├── api.ts             # Client API client with transparent offline fallback
 │   │   ├── eligibility.ts     # Core rule-based evaluation engine
 │   │   ├── domainMatching.ts  # Domain mapping utilities
-│   │   ├── supabase.ts        # Supabase browser client
-│   │   └── AuthContext.tsx    # Session and logout context
 │   │
 │   ├── App.tsx                # Main application orchestrator
 │   ├── App.css                # Polished government-grade responsive styles
@@ -127,7 +117,7 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 │   └── main.tsx               # React DOM entry point
 │
 └── tests/
-    ├── src/lib/schemesathi.test.ts  # End-to-end matching, admin auth & Telugu tests
+    ├── src/lib/schemesathi.test.ts  # Scheme matching and Telugu tests
     ├── src/lib/eligibility.test.ts  # Criterion operator & verification tests
     ├── src/lib/domainMatching.test.ts # Domain matching tests
     └── src/data/careerGuides.test.ts # Career guides tests
@@ -136,6 +126,8 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 ---
 
 ## 🚀 Getting Started
+
+The public entry URL (`/`) opens SchemeSathi directly. No account or login is required.
 
 ### 1. Prerequisites
 - **Node.js**: v20 or higher (v24 recommended).
@@ -147,39 +139,13 @@ Run in your project root:
 npm install
 ```
 
-### 3. Configure Supabase
-
-1. Open the Supabase project dashboard.
-2. In **SQL Editor**, run [supabase/schema.sql](supabase/schema.sql) once.
-3. In **Authentication → Providers**, enable Email.
-4. In **Authentication → URL Configuration**, add:
-   - Local redirect: `http://localhost:5173/reset-password`
-   - Local site URL: `http://localhost:5173`
-   - Production site URL: `https://schemesathi-one.vercel.app`
-   - Production callback: `https://schemesathi-one.vercel.app/reset-password`
-5. Supabase email confirmation links should redirect to `/dashboard`.
-6. `.env.local` already contains the public Supabase URL and publishable key. Never place a Supabase service-role key in this file or in Vite code.
-
-To create the first administrator, create a user through Registration, confirm the email, then run this in the Supabase SQL Editor:
-
-```sql
-update public.profiles
-set role = 'admin'
-where id = (
-  select id from auth.users
-  where email = 'trusted-admin@example.com'
-);
-```
-
-Administrator privileges must only be assigned in the Supabase dashboard or SQL Editor. Browser profile edits cannot change this role.
-
-### 4. Initialize & Seed the SQLite Database
+### 3. Initialize & Seed the SQLite Database
 The SQLite database automatically initializes when the server starts, or you can seed it explicitly:
 ```powershell
 node server/db/seed.mjs
 ```
 
-### 5. Run the Project
+### 4. Run the Project
 You can run the backend server and frontend Vite development server:
 
 **Terminal 1 (Backend API Server on port 5000):**
@@ -196,40 +162,23 @@ Open your browser at: **`http://localhost:5173`**
 
 *(Note: SchemeSathi also has a built-in offline engine fallback; if the backend server is not running, the frontend automatically evaluates rules client-side without crashing!)*
 
-### 6. Run Tests
+### 5. Run Tests
 To verify all eligibility engine logic and translation suites:
 ```powershell
 npm test
 ```
 
-### 7. Production Build
+### 6. Production Build
 To create an optimized production build in `dist/`:
 ```powershell
 npm run build
 ```
 
-### 8. Vercel Deployment
+### 7. Vercel Deployment
 
-In the Vercel project settings, add these environment variables:
-
-- `VITE_SUPABASE_URL=https://pspzpzmelufuffmzahqi.supabase.co`
-- `VITE_SUPABASE_ANON_KEY=<your public Supabase publishable key>`
-
-Redeploy after adding environment variables. [vercel.json](vercel.json) provides direct-URL routing for React pages. In Supabase, keep the production Site URL and allowed redirect URLs limited to SchemeSathi domains.
+No authentication or Supabase environment variables are required. Remove the unused `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_APP_URL` variables from Vercel, then deploy the updated project. [vercel.json](vercel.json) routes page requests to the public app.
 
 ---
-
-## 🔐 Administrator Portal Access
-
-To access the administrator dashboard:
-1. Click **"Admin Portal"** in the top navigation bar.
-2. Sign in with an account whose `profiles.role` is `admin`.
-3. As an administrator, you can:
-   - Add new Central or State welfare schemes.
-   - Update eligibility criteria, income thresholds, and age rules.
-   - Edit application links, deadlines, and required documents.
-   - Toggle schemes active or inactive.
-   - Delete outdated schemes.
 
 ---
 

@@ -1,7 +1,6 @@
 import http from 'node:http'
-import url from 'node:url'
 import { getDatabase } from './db/database.mjs'
-import { hashPassword, seedDatabase } from './db/seed.mjs'
+import { seedDatabase } from './db/seed.mjs'
 
 // Ensure DB is initialized and seeded
 seedDatabase()
@@ -227,102 +226,6 @@ const server = http.createServer(async (req, res) => {
       }
 
       return sendJson(res, 200, { results, counts })
-    }
-
-    // Admin Login
-    if (pathname === '/api/admin/login' && req.method === 'POST') {
-      const { email, password } = await parseBody(req)
-      if (!email || !password) {
-        return sendError(res, 400, 'Email and password required')
-      }
-
-      const hash = hashPassword(password)
-      const admin = db.prepare('SELECT id, email, name, role FROM admin_users WHERE email = ? AND password_hash = ?').get(email.trim(), hash)
-
-      if (!admin) {
-        return sendError(res, 401, 'Invalid admin email or password')
-      }
-
-      const token = Buffer.from(`${admin.id}:${Date.now()}:${admin.email}`).toString('base64')
-      return sendJson(res, 200, {
-        success: true,
-        token,
-        admin
-      })
-    }
-
-    // Admin Add Scheme
-    if (pathname === '/api/admin/schemes' && req.method === 'POST') {
-      const data = await parseBody(req)
-      if (!data.id || !data.name || !data.department || !data.category) {
-        return sendError(res, 400, 'Missing required scheme fields')
-      }
-
-      db.prepare(`
-        INSERT INTO schemes (
-          id, name, name_te, government_level, department, department_te,
-          description, description_te, purpose, benefit, benefit_te,
-          category, state, helpline, deadline, official_url, official_source_url,
-          source_reference, last_verified, criteria_complete, is_active, color, symbol
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        data.id, data.name, data.name_te || null, data.government_level || 'Central',
-        data.department, data.department_te || null, data.description || '', data.description_te || null,
-        data.purpose || null, data.benefit || null, data.benefit_te || null,
-        data.category, data.state || 'All India', data.helpline || null, data.deadline || null,
-        data.official_url || '', data.official_source_url || data.official_url || '',
-        data.source_reference || 'Official Guidelines', data.last_verified || new Date().toISOString().split('T')[0],
-        data.criteria_complete ?? 1, data.is_active ?? 1, data.color || 'blue', data.symbol || '📋'
-      )
-
-      return sendJson(res, 201, { success: true, id: data.id, message: 'Scheme created successfully' })
-    }
-
-    // Admin Edit Scheme
-    if (pathname.startsWith('/api/admin/schemes/') && req.method === 'PUT') {
-      const schemeId = pathname.replace('/api/admin/schemes/', '')
-      const data = await parseBody(req)
-
-      db.prepare(`
-        UPDATE schemes SET
-          name = COALESCE(?, name),
-          department = COALESCE(?, department),
-          description = COALESCE(?, description),
-          benefit = COALESCE(?, benefit),
-          category = COALESCE(?, category),
-          state = COALESCE(?, state),
-          helpline = COALESCE(?, helpline),
-          official_url = COALESCE(?, official_url),
-          last_verified = COALESCE(?, last_verified),
-          is_active = COALESCE(?, is_active),
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).run(
-        data.name, data.department, data.description, data.benefit,
-        data.category, data.state, data.helpline, data.official_url,
-        data.last_verified, data.is_active, schemeId
-      )
-
-      return sendJson(res, 200, { success: true, message: 'Scheme updated successfully' })
-    }
-
-    // Admin Delete Scheme
-    if (pathname.startsWith('/api/admin/schemes/') && req.method === 'DELETE') {
-      const schemeId = pathname.replace('/api/admin/schemes/', '')
-      db.prepare('DELETE FROM schemes WHERE id = ?').run(schemeId)
-      return sendJson(res, 200, { success: true, message: 'Scheme deleted' })
-    }
-
-    // Admin Toggle Scheme Status
-    if (pathname.startsWith('/api/admin/schemes/') && pathname.endsWith('/status') && req.method === 'PATCH') {
-      const schemeId = pathname.replace('/api/admin/schemes/', '').replace('/status', '')
-      const scheme = db.prepare('SELECT is_active FROM schemes WHERE id = ?').get(schemeId)
-      if (!scheme) return sendError(res, 404, 'Scheme not found')
-
-      const newStatus = scheme.is_active === 1 ? 0 : 1
-      db.prepare('UPDATE schemes SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(newStatus, schemeId)
-
-      return sendJson(res, 200, { success: true, is_active: newStatus })
     }
 
     // 404 Not Found

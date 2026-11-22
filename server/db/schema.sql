@@ -68,15 +68,6 @@ CREATE TABLE IF NOT EXISTS application_steps (
   FOREIGN KEY (scheme_id) REFERENCES schemes(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS admin_users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  name TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'admin',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE INDEX IF NOT EXISTS idx_schemes_category ON schemes(category);
 CREATE INDEX IF NOT EXISTS idx_schemes_state ON schemes(state);
 CREATE INDEX IF NOT EXISTS idx_schemes_is_active ON schemes(is_active);
