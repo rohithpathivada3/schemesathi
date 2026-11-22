@@ -1,4 +1,14 @@
 {
+  "crons": [
+    { "path": "/api/cron/sync", "schedule": "0 3 * * *" }
+  ],
+  "functions": {
+    "api/cron/sync.mjs": { "maxDuration": 60 },
+    "api/admin/actions.mjs": { "maxDuration": 60 },
+    "api/admin/overview.mjs": { "maxDuration": 30 },
+    "api/discovery/opportunities.mjs": { "maxDuration": 30 },
+    "api/discovery/notifications.mjs": { "maxDuration": 15 }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

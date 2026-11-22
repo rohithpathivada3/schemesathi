@@ -3,6 +3,7 @@ import { Search, Bookmark, ExternalLink, ArrowDownRight, Wallet, ArrowRight, Che
 import type { Scheme } from '../data/schemes'
 import type { Language } from '../data/translations'
 import { translations } from '../data/translations'
+import { discoveryDomains, schemeMatchesDomains, type DiscoveryDomainId } from '../lib/domainMatching'
 import { SchemeDetailModal } from './SchemeDetailModal'
 import { DocumentChecklistModal } from './DocumentChecklistModal'
 
@@ -11,6 +12,11 @@ type Props = {
   lang: Language
   saved: string[]
   onToggleSaved: (id: string) => void
+  selectedDomainIds: DiscoveryDomainId[]
+  onToggleDomain: (domainId: DiscoveryDomainId) => void
+  onSelectAllDomains: () => void
+  domainPreferencePersistenceAvailable: boolean
+  onViewScheme: (scheme: Scheme) => void
 }
 
 const categories = [
@@ -25,7 +31,17 @@ const categories = [
   'Financial assistance'
 ]
 
-export function ExploreSchemes({ schemes, lang, saved, onToggleSaved }: Props) {
+export function ExploreSchemes({
+  schemes,
+  lang,
+  saved,
+  onToggleSaved,
+  selectedDomainIds,
+  onToggleDomain,
+  onSelectAllDomains,
+  domainPreferencePersistenceAvailable,
+  onViewScheme,
+}: Props) {
   const t = translations[lang]
 
   const [category, setCategory] = useState('All schemes')
@@ -41,11 +57,12 @@ export function ExploreSchemes({ schemes, lang, saved, onToggleSaved }: Props) {
       const catMatches = category === 'All schemes' || s.category === category
       const stateMatches = selectedState === 'all' || s.state === selectedState || (selectedState === 'Central' && s.state === 'All India')
       const savedMatches = !showSavedOnly || saved.includes(s.id)
+      const domainMatches = schemeMatchesDomains(s, selectedDomainIds)
       const text = `${s.name} ${s.nameTe || ''} ${s.department} ${s.departmentTe || ''} ${s.description} ${s.category} ${s.tags.join(' ')}`.toLowerCase()
       const searchMatches = !q || text.includes(q)
-      return catMatches && stateMatches && savedMatches && searchMatches && s.isActive !== false
+      return catMatches && stateMatches && savedMatches && domainMatches && searchMatches && s.isActive !== false
     })
-  }, [schemes, category, selectedState, search, showSavedOnly, saved])
+  }, [schemes, category, selectedState, search, showSavedOnly, saved, selectedDomainIds])
 
   return (
     <section className="discover-section" id="discover">
@@ -64,6 +81,49 @@ export function ExploreSchemes({ schemes, lang, saved, onToggleSaved }: Props) {
           <span>{visibleSchemes.length.toString().padStart(2, '0')}</span>
           <small>{lang === 'te' ? 'పథకాలు\nఅందుబాటులో ఉన్నాయి' : 'SCHEMES\nAVAILABLE'}</small>
         </div>
+      </div>
+
+      <div className="domain-filter-panel">
+        <div className="domain-filter-heading">
+          <h3>{lang === 'te' ? 'మీ ఆసక్తి రంగాలను ఎంచుకోండి' : 'Choose domains'}</h3>
+          <span aria-live="polite">
+            {selectedDomainIds.length === 0
+              ? (lang === 'te' ? 'అన్ని రంగాలు' : 'All domains')
+              : lang === 'te'
+                ? `${selectedDomainIds.length} రంగాలు ఎంచుకున్నారు`
+                : `${selectedDomainIds.length} selected`}
+          </span>
+        </div>
+        <div className="domain-filter-chips" role="group" aria-label={lang === 'te' ? 'పథకాల రంగాలు' : 'Scheme domains'}>
+          <button
+            type="button"
+            className="domain-chip"
+            aria-pressed={selectedDomainIds.length === 0}
+            onClick={onSelectAllDomains}
+          >
+            {lang === 'te' ? 'అన్ని రంగాలు' : 'All domains'}
+          </button>
+          {discoveryDomains.map((domain) => (
+            <button
+              key={domain.id}
+              type="button"
+              className="domain-chip"
+              aria-pressed={selectedDomainIds.includes(domain.id)}
+              onClick={() => onToggleDomain(domain.id)}
+            >
+              {domain.label[lang]}
+            </button>
+          ))}
+        </div>
+        <p className="domain-preference-note" role="status">
+          {domainPreferencePersistenceAvailable
+            ? lang === 'te'
+              ? 'మీ ఎంపికలు ఈ పరికరంలోని బ్రౌజర్‌లో మాత్రమే భద్రపరచబడతాయి.'
+              : 'Your choices are saved only in this browser on this device.'
+            : lang === 'te'
+              ? 'ఈ బ్రౌజర్‌లో ఎంపికలను భద్రపరచలేకపోయాం; పేజీ తెరిచి ఉన్నంతవరకు మాత్రమే అవి ఉంటాయి.'
+              : 'This browser could not save your choices; they will last only while this page is open.'}
+        </p>
       </div>
 
       {/* Filter and Search Toolbar */}
@@ -175,7 +235,10 @@ export function ExploreSchemes({ schemes, lang, saved, onToggleSaved }: Props) {
                   <button
                     type="button"
                     className="card-details-btn"
-                    onClick={() => setSelectedScheme(scheme)}
+                    onClick={() => {
+                      onViewScheme(scheme)
+                      setSelectedScheme(scheme)
+                    }}
                   >
                     {t.viewDetails}
                   </button>
@@ -183,7 +246,10 @@ export function ExploreSchemes({ schemes, lang, saved, onToggleSaved }: Props) {
                   <button
                     type="button"
                     className="card-checklist-btn"
-                    onClick={() => setChecklistScheme(scheme)}
+                    onClick={() => {
+                      onViewScheme(scheme)
+                      setChecklistScheme(scheme)
+                    }}
                     title="Interactive Document Checklist"
                   >
                     <CheckSquare size={13} /> {t.checklistBtn}
@@ -211,7 +277,7 @@ export function ExploreSchemes({ schemes, lang, saved, onToggleSaved }: Props) {
           <button
             type="button"
             className="btn-primary"
-            onClick={() => { setSearch(''); setCategory('All schemes'); setSelectedState('all'); setShowSavedOnly(false) }}
+            onClick={() => { setSearch(''); setCategory('All schemes'); setSelectedState('all'); setShowSavedOnly(false); onSelectAllDomains() }}
           >
             {lang === 'te' ? 'అన్ని పథకాలను చూపించు' : 'See All Schemes'} <ArrowRight size={15} />
           </button>

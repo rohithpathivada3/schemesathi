@@ -37,18 +37,26 @@ export function Navbar({
       <button
         className="mobile-menu"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        aria-label="Toggle navigation"
+        aria-label={lang === 'te' ? 'నావిగేషన్ టోగుల్ చేయండి' : 'Toggle navigation'}
+        aria-expanded={mobileMenuOpen}
+        aria-controls="main-navigation"
       >
         {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
       </button>
 
       {/* Main Navigation Links */}
-      <nav className={`main-nav ${mobileMenuOpen ? 'is-open' : ''}`} aria-label="Main navigation">
+      <nav id="main-navigation" className={`main-nav ${mobileMenuOpen ? 'is-open' : ''}`} aria-label="Main navigation">
         <a href="#eligibility-checker" onClick={() => setMobileMenuOpen(false)}>
           {t.navFinder}
         </a>
         <a href="#discover" onClick={() => setMobileMenuOpen(false)}>
           {t.navDiscover}
+        </a>
+        <a href="#dashboard" onClick={() => setMobileMenuOpen(false)}>
+          {lang === 'te' ? 'డాష్‌బోర్డ్' : 'Dashboard'}
+        </a>
+        <a href="#live-updates" onClick={() => setMobileMenuOpen(false)}>
+          {lang === 'te' ? 'తాజా సమాచారం' : 'Live updates'}
         </a>
         <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>
           {t.navHowItWorks}

@@ -1,4 +1,9 @@
 import http from 'node:http'
+import discoveryHandler from '../api/discovery/opportunities.mjs'
+import notificationsHandler from '../api/discovery/notifications.mjs'
+import syncHandler from '../api/cron/sync.mjs'
+import adminActionsHandler from '../api/admin/actions.mjs'
+import adminOverviewHandler from '../api/admin/overview.mjs'
 import { getDatabase } from './db/database.mjs'
 import { seedDatabase } from './db/seed.mjs'
 
@@ -126,9 +131,25 @@ const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host || 'localhost:5000'}`)
   const pathname = reqUrl.pathname
   const queryParams = Object.fromEntries(reqUrl.searchParams.entries())
-  const db = getDatabase()
+
+  if (pathname === '/api/discovery/opportunities') {
+    return discoveryHandler(req, res)
+  }
+  if (pathname === '/api/discovery/notifications') {
+    return notificationsHandler(req, res)
+  }
+  if (pathname === '/api/cron/sync') {
+    return syncHandler(req, res)
+  }
+  if (pathname === '/api/admin/overview') {
+    return adminOverviewHandler(req, res)
+  }
+  if (pathname === '/api/admin/actions') {
+    return adminActionsHandler(req, res)
+  }
 
   try {
+    const db = getDatabase()
     // Health check
     if (pathname === '/api/health' && req.method === 'GET') {
       return sendJson(res, 200, { status: 'ok', service: 'SchemeSathi Backend API', timestamp: new Date().toISOString() })

@@ -4,13 +4,19 @@ import { Navigate, Routes, Route } from 'react-router-dom'
 import { schemes as initialSchemes, type Scheme } from './data/schemes'
 import { evaluateSchemes, filterSchemesForProfile, type CitizenProfile } from './lib/eligibility'
 import { translations, type Language } from './data/translations'
+import { schemeMatchesDomains, type DiscoveryDomainId } from './lib/domainMatching'
+import { loadDomainPreferences, saveDomainPreferences } from './lib/domainPreferences'
+import { loadRecentlyViewed, saveRecentlyViewed } from './lib/localActivity'
 import { Navbar } from './components/Navbar'
 import { EligibilityForm, type FormProfileData } from './components/EligibilityForm'
 import { EligibilityDashboard } from './components/EligibilityDashboard'
 import { ExploreSchemes } from './components/ExploreSchemes'
+import { PersonalizedDashboard } from './components/PersonalizedDashboard'
+import { LiveUpdates } from './components/LiveUpdates'
 import { HowItWorks } from './components/HowItWorks'
 import { WhyChooseSection } from './components/WhyChooseSection'
 import { FAQSection } from './components/FAQSection'
+import { AdminPortal } from './components/AdminPortal'
 import './App.css'
 
 const initialProfileData: FormProfileData = {
@@ -56,11 +62,43 @@ function App() {
     }
   })
   const [showSavedView, setShowSavedView] = useState(false)
+  const [domainPreferences, setDomainPreferences] = useState(loadDomainPreferences)
+  const selectedDomainIds = domainPreferences.selectedDomainIds
+  const [recentlyViewed, setRecentlyViewed] = useState(() =>
+    loadRecentlyViewed(schemesList.map((scheme) => scheme.id))
+  )
+
   useEffect(() => {
     try {
       localStorage.setItem('schemesathi_saved_ids', JSON.stringify(saved))
     } catch {}
   }, [saved])
+
+  const handleSelectAllDomains = () => {
+    const persistenceAvailable = saveDomainPreferences([])
+    setDomainPreferences((current) => ({
+      ...current,
+      selectedDomainIds: [],
+      persistenceAvailable,
+    }))
+  }
+
+  const handleToggleDomain = (domainId: DiscoveryDomainId) => {
+    const nextDomainIds = selectedDomainIds.includes(domainId)
+      ? selectedDomainIds.filter((id) => id !== domainId)
+      : [...selectedDomainIds, domainId]
+    const persistenceAvailable = saveDomainPreferences(nextDomainIds)
+    setDomainPreferences((current) => ({
+      ...current,
+      selectedDomainIds: nextDomainIds,
+      persistenceAvailable,
+    }))
+  }
+
+  const domainFilteredSchemes = useMemo(
+    () => schemesList.filter((scheme) => schemeMatchesDomains(scheme, selectedDomainIds)),
+    [schemesList, selectedDomainIds]
+  )
 
   const handleProfileChange = (key: keyof FormProfileData, value: string) => {
     setProfileData((prev) => ({ ...prev, [key]: value }))
@@ -75,6 +113,16 @@ function App() {
     setSaved((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     )
+  }
+
+  const handleViewScheme = (scheme: Scheme) => {
+    const validSchemeIds = schemesList.map((item) => item.id)
+    const nextSchemeIds = [scheme.id, ...recentlyViewed.schemeIds.filter((id) => id !== scheme.id)]
+    const persistenceAvailable = saveRecentlyViewed(nextSchemeIds, validSchemeIds)
+    setRecentlyViewed({
+      schemeIds: nextSchemeIds.slice(0, 5),
+      persistenceAvailable,
+    })
   }
 
   // Construct structured CitizenProfile for eligibility engine
@@ -101,9 +149,9 @@ function App() {
 
   // Run Rule-Based Eligibility Engine
   const eligibilityResults = useMemo(() => {
-    const relevantSchemes = filterSchemesForProfile(schemesList, profile)
+    const relevantSchemes = filterSchemesForProfile(domainFilteredSchemes, profile)
     return evaluateSchemes(relevantSchemes, profile)
-  }, [schemesList, profile])
+  }, [domainFilteredSchemes, profile])
 
   const eligibilityCounts = useMemo(() => {
     return {
@@ -128,6 +176,7 @@ function App() {
 
   return (
     <Routes>
+      <Route path="/admin" element={<AdminPortal />} />
       <Route path="/" element={
     <div className="app-shell">
       {/* 1. Header & Navigation */}
@@ -245,12 +294,28 @@ function App() {
           lang={lang}
         />
 
+        <PersonalizedDashboard
+          schemes={domainFilteredSchemes}
+          savedSchemeIds={saved}
+          recentlyViewedIds={recentlyViewed.schemeIds}
+          recentStorageAvailable={recentlyViewed.persistenceAvailable}
+          selectedDomainIds={selectedDomainIds}
+          lang={lang}
+        />
+
+        <LiveUpdates selectedDomainIds={selectedDomainIds} lang={lang} />
+
         {/* 5. Comprehensive Scheme Catalog & Explorer */}
         <ExploreSchemes
           schemes={schemesList}
           lang={lang}
           saved={saved}
           onToggleSaved={handleToggleSaved}
+          selectedDomainIds={selectedDomainIds}
+          onToggleDomain={handleToggleDomain}
+          onSelectAllDomains={handleSelectAllDomains}
+          domainPreferencePersistenceAvailable={domainPreferences.persistenceAvailable}
+          onViewScheme={handleViewScheme}
         />
 
         {/* 6. How It Works Section */}
