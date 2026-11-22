@@ -189,6 +189,16 @@ export function ExploreSchemes({
             const department = lang === 'te' && scheme.departmentTe ? scheme.departmentTe : scheme.department
             const description = lang === 'te' && scheme.descriptionTe ? scheme.descriptionTe : scheme.description
             const benefit = lang === 'te' && scheme.benefitTe ? scheme.benefitTe : scheme.benefit
+            const saveLabel = isSaved
+              ? lang === 'te' ? 'భద్రపరచబడింది' : 'Saved'
+              : lang === 'te' ? 'భద్రపరచండి' : 'Save'
+            const saveActionLabel = isSaved
+              ? lang === 'te'
+                ? `${schemeName}ను భద్రపరిచిన పథకాల నుంచి తీసివేయండి`
+                : `Remove ${schemeName} from saved schemes`
+              : lang === 'te'
+                ? `${schemeName}ను భద్రపరచండి`
+                : `Save ${schemeName}`
 
             return (
               <article
@@ -203,11 +213,15 @@ export function ExploreSchemes({
                     {scheme.state !== 'All India' && <span className="state-badge-pill">{scheme.state}</span>}
                   </div>
                   <button
+                    type="button"
                     className={`bookmark-button ${isSaved ? 'is-saved' : ''}`}
-                    aria-label={isSaved ? `Remove ${schemeName}` : `Save ${schemeName}`}
+                    aria-label={saveActionLabel}
+                    aria-pressed={isSaved}
+                    title={saveActionLabel}
                     onClick={() => onToggleSaved(scheme.id)}
                   >
                     <Bookmark size={17} fill={isSaved ? 'currentColor' : 'none'} />
+                    <span>{saveLabel}</span>
                   </button>
                 </div>
 
