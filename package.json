@@ -12,11 +12,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@firebase/app": "^0.16.7",
-    "@firebase/auth": "^1.13.11",
+    "@supabase/supabase-js": "^2.119.2",
     "lucide-react": "^1.77.0",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.6"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

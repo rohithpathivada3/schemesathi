@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, ShieldCheck, Check, X, Search, LogOut, Lock, AlertCircle, Building2, Eye, EyeOff } from 'lucide-react'
 import type { Scheme } from '../data/schemes'
 import type { Language } from '../data/translations'
 import { translations } from '../data/translations'
-import { adminLogin, type AdminUser } from '../lib/api'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/AuthContext'
+
+type AdminUser = { id: string; email: string; name: string; role: string }
 
 type Props = {
   schemes: Scheme[]
@@ -14,18 +17,11 @@ type Props = {
 
 export function AdminPortal({ schemes, lang, onClose, onUpdateSchemes }: Props) {
   const t = translations[lang]
+  const { user, signOut } = useAuth()
 
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(() => {
-    try {
-      const saved = sessionStorage.getItem('schemesathi_admin')
-      return saved ? JSON.parse(saved) : null
-    } catch {
-      return null
-    }
-  })
-
-  const [email, setEmail] = useState('admin@schemesathi.in')
-  const [password, setPassword] = useState('Admin@12345')
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
@@ -37,39 +33,86 @@ export function AdminPortal({ schemes, lang, onClose, onUpdateSchemes }: Props) 
   const [editingScheme, setEditingScheme] = useState<Partial<Scheme> | null>(null)
   const [isNew, setIsNew] = useState(false)
 
+  useEffect(() => {
+    if (!supabase || !user) {
+      setAdminUser(null)
+      return
+    }
+    supabase.from('profiles').select('full_name, role').eq('id', user.id).maybeSingle().then(({ data }) => {
+      if (data?.role === 'admin') {
+        setAdminUser({ id: user.id, email: user.email || '', name: data.full_name || 'Administrator', role: 'admin' })
+      } else {
+        setAdminUser(null)
+      }
+    })
+  }, [user])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoggingIn(true)
     setLoginError('')
-    const res = await adminLogin(email, password)
-    setIsLoggingIn(false)
-
-    if (res.success && res.admin) {
-      setAdminUser(res.admin)
-      sessionStorage.setItem('schemesathi_admin', JSON.stringify(res.admin))
-    } else {
-      setLoginError(res.error || 'Invalid credentials')
+    if (!supabase) {
+      setLoginError('Supabase is not configured.')
+      setIsLoggingIn(false)
+      return
     }
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    if (error) {
+      setLoginError(error.message)
+      setIsLoggingIn(false)
+      return
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, role')
+      .eq('id', data.user.id)
+      .maybeSingle()
+    setIsLoggingIn(false)
+    if (profile?.role !== 'admin') {
+      setLoginError('This account is not authorized as an administrator.')
+      await supabase.auth.signOut()
+      return
+    }
+    setAdminUser({ id: data.user.id, email: data.user.email || '', name: profile.full_name || 'Administrator', role: 'admin' })
   }
 
   const handleLogout = () => {
+    void signOut()
     setAdminUser(null)
-    sessionStorage.removeItem('schemesathi_admin')
   }
 
-  const toggleStatus = (id: string) => {
+  const toggleStatus = async (id: string) => {
     const updated = schemes.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s)
     onUpdateSchemes(updated)
-  }
-
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this scheme record?')) {
-      const updated = schemes.filter(s => s.id !== id)
-      onUpdateSchemes(updated)
+    if (supabase) {
+      const target = updated.find((scheme) => scheme.id === id)
+      if (target) await supabase.from('schemes').upsert({
+        id: target.id,
+        name: target.name,
+        name_te: target.nameTe || null,
+        government_level: target.governmentLevel,
+        department: target.department,
+        description: target.description,
+        benefit: target.benefit,
+        state: target.state,
+        official_url: target.officialUrl,
+        source_reference: target.sourceReference,
+        last_verified: target.lastVerified,
+        criteria_complete: target.criteriaComplete,
+        is_active: target.isActive !== false,
+      })
     }
   }
 
-  const handleSaveScheme = (e: React.FormEvent) => {
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this scheme record?')) {
+      const updated = schemes.filter(s => s.id !== id)
+      onUpdateSchemes(updated)
+      if (supabase) await supabase.from('schemes').delete().eq('id', id)
+    }
+  }
+
+  const handleSaveScheme = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingScheme?.name || !editingScheme?.id) return
 
@@ -109,6 +152,24 @@ export function AdminPortal({ schemes, lang, onClose, onUpdateSchemes }: Props) 
     }
 
     onUpdateSchemes(updatedList)
+    if (supabase) {
+      const savedRecord = updatedList.find((scheme) => scheme.id === editingScheme.id)
+      if (savedRecord) await supabase.from('schemes').upsert({
+        id: savedRecord.id,
+        name: savedRecord.name,
+        name_te: savedRecord.nameTe || null,
+        government_level: savedRecord.governmentLevel,
+        department: savedRecord.department,
+        description: savedRecord.description,
+        benefit: savedRecord.benefit,
+        state: savedRecord.state,
+        official_url: savedRecord.officialUrl,
+        source_reference: savedRecord.sourceReference,
+        last_verified: savedRecord.lastVerified,
+        criteria_complete: savedRecord.criteriaComplete,
+        is_active: savedRecord.isActive !== false,
+      })
+    }
     setEditingScheme(null)
   }
 
@@ -133,11 +194,6 @@ export function AdminPortal({ schemes, lang, onClose, onUpdateSchemes }: Props) 
           </div>
 
           <div className="scheme-modal-content">
-            <div className="admin-demo-creds">
-              <span className="badge-pill">Demo Credentials Pre-filled</span>
-              <p>Email: <code>admin@schemesathi.in</code> | Password: <code>Admin@12345</code></p>
-            </div>
-
             {loginError && (
               <div className="auth-error-box">
                 <AlertCircle size={15} /> <span>{loginError}</span>

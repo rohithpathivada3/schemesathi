@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Landmark, Bookmark, Menu, X, Languages, Lock } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../lib/AuthContext'
 import type { Language } from '../data/translations'
 import { translations } from '../data/translations'
 
@@ -22,6 +24,13 @@ export function Navbar({
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const t = translations[lang]
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const handleLogout = async () => {
+    await signOut()
+    setMobileMenuOpen(false)
+    navigate('/', { replace: true })
+  }
 
   return (
     <header className="topbar">
@@ -85,6 +94,19 @@ export function Navbar({
         >
           <Lock size={14} /> {t.navAdmin}
         </button>
+
+        {user ? (
+          <div className="account-nav">
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+            <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
+            <button type="button" onClick={handleLogout}>Logout</button>
+          </div>
+        ) : (
+          <div className="account-nav guest">
+            <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+            <Link className="register-link" to="/register" onClick={() => setMobileMenuOpen(false)}>Register</Link>
+          </div>
+        )}
 
         {/* Language Switcher Toggle */}
         <div className="language-switcher">

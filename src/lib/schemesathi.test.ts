@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { schemes } from '../data/schemes'
 import { evaluateScheme, evaluateSchemes } from './eligibility'
-import { adminLogin } from './api'
 import { translations } from '../data/translations'
 
 describe('SchemeSathi Full System Test Suite', () => {
@@ -116,15 +115,6 @@ describe('SchemeSathi Full System Test Suite', () => {
 
     expect(eligible.length).toBeGreaterThan(0)
     expect(needsVerification.length + doesNotMeet.length).toBeGreaterThan(0)
-  })
-
-  it('authenticates admin login with default credentials', async () => {
-    const success = await adminLogin('admin@schemesathi.in', 'Admin@12345')
-    expect(success.success).toBe(true)
-    expect(success.admin?.email).toBe('admin@schemesathi.in')
-
-    const failed = await adminLogin('admin@schemesathi.in', 'WrongPassword!')
-    expect(failed.success).toBe(false)
   })
 
   it('contains complete English and Telugu translation keys', () => {

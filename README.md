@@ -72,8 +72,8 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19, Vite, TypeScript, Lucide Icons, CSS3 (Modern Responsive Design).
-- **Backend**: Node.js REST API server with built-in `node:http` and `node:crypto`.
-- **Database**: SQLite (via Node 24 native `node:sqlite` - `DatabaseSync`), easily portable to PostgreSQL or MySQL.
+- **Database**: Supabase PostgreSQL for accounts and user data; the existing SQLite backend remains available for public local scheme fallback.
+- **Authentication**: Supabase Auth with email verification and password recovery.
 - **Testing**: Vitest (Unit and integration tests for eligibility rules, API, and bilingual translations).
 
 ---
@@ -107,7 +107,7 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 │   │   ├── WhyChooseSection.tsx # Key citizen benefits & trust markers
 │   │   ├── FAQSection.tsx     # Interactive FAQ accordion
 │   │   ├── AdminPortal.tsx    # Administrator authentication & scheme management
-│   │   └── AuthDialog.tsx     # Citizen optional account dialog
+│   │   └── ProtectedRoute.tsx # Client-side protected route guard
 │   │
 │   ├── data/
 │   │   ├── schemes.ts         # Verified scheme dataset & criteria models
@@ -118,7 +118,8 @@ The platform provides intelligent, rule-based eligibility evaluation, interactiv
 │   │   ├── api.ts             # Client API client with transparent offline fallback
 │   │   ├── eligibility.ts     # Core rule-based evaluation engine
 │   │   ├── domainMatching.ts  # Domain mapping utilities
-│   │   └── firebase.ts        # Optional Firebase authentication client
+│   │   ├── supabase.ts        # Supabase browser client
+│   │   └── AuthContext.tsx    # Session and logout context
 │   │
 │   ├── App.tsx                # Main application orchestrator
 │   ├── App.css                # Polished government-grade responsive styles
@@ -146,13 +147,39 @@ Run in your project root:
 npm install
 ```
 
-### 3. Initialize & Seed the SQLite Database
+### 3. Configure Supabase
+
+1. Open the Supabase project dashboard.
+2. In **SQL Editor**, run [supabase/schema.sql](supabase/schema.sql) once.
+3. In **Authentication → Providers**, enable Email.
+4. In **Authentication → URL Configuration**, add:
+   - Local redirect: `http://localhost:5173/reset-password`
+   - Local site URL: `http://localhost:5173`
+   - Production site URL: `https://schemesathi-one.vercel.app`
+   - Production callback: `https://schemesathi-one.vercel.app/reset-password`
+5. Supabase email confirmation links should redirect to `/dashboard`.
+6. `.env.local` already contains the public Supabase URL and publishable key. Never place a Supabase service-role key in this file or in Vite code.
+
+To create the first administrator, create a user through Registration, confirm the email, then run this in the Supabase SQL Editor:
+
+```sql
+update public.profiles
+set role = 'admin'
+where id = (
+  select id from auth.users
+  where email = 'trusted-admin@example.com'
+);
+```
+
+Administrator privileges must only be assigned in the Supabase dashboard or SQL Editor. Browser profile edits cannot change this role.
+
+### 4. Initialize & Seed the SQLite Database
 The SQLite database automatically initializes when the server starts, or you can seed it explicitly:
 ```powershell
 node server/db/seed.mjs
 ```
 
-### 4. Run the Project
+### 5. Run the Project
 You can run the backend server and frontend Vite development server:
 
 **Terminal 1 (Backend API Server on port 5000):**
@@ -169,17 +196,26 @@ Open your browser at: **`http://localhost:5173`**
 
 *(Note: SchemeSathi also has a built-in offline engine fallback; if the backend server is not running, the frontend automatically evaluates rules client-side without crashing!)*
 
-### 5. Run Tests
+### 6. Run Tests
 To verify all eligibility engine logic and translation suites:
 ```powershell
 npm test
 ```
 
-### 6. Production Build
+### 7. Production Build
 To create an optimized production build in `dist/`:
 ```powershell
 npm run build
 ```
+
+### 8. Vercel Deployment
+
+In the Vercel project settings, add these environment variables:
+
+- `VITE_SUPABASE_URL=https://pspzpzmelufuffmzahqi.supabase.co`
+- `VITE_SUPABASE_ANON_KEY=<your public Supabase publishable key>`
+
+Redeploy after adding environment variables. [vercel.json](vercel.json) provides direct-URL routing for React pages. In Supabase, keep the production Site URL and allowed redirect URLs limited to SchemeSathi domains.
 
 ---
 
@@ -187,9 +223,7 @@ npm run build
 
 To access the administrator dashboard:
 1. Click **"Admin Portal"** in the top navigation bar.
-2. Sign in with the default credentials:
-   - **Email**: `admin@schemesathi.in`
-   - **Password**: `Admin@12345`
+2. Sign in with an account whose `profiles.role` is `admin`.
 3. As an administrator, you can:
    - Add new Central or State welfare schemes.
    - Update eligibility criteria, income thresholds, and age rules.

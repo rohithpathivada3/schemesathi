@@ -9,13 +9,6 @@ export type SchemeStats = {
   categories: { category: string; count: number }[]
 }
 
-export type AdminUser = {
-  id: number | string
-  email: string
-  name: string
-  role: string
-}
-
 let backendAvailable: boolean | null = null
 
 export async function checkBackendHealth(): Promise<boolean> {
@@ -69,37 +62,6 @@ export async function evaluateProfile(profile: CitizenProfile): Promise<{ result
     'does-not-meet': results.filter(r => r.status === 'does-not-meet').length,
   }
   return { results, counts }
-}
-
-export async function adminLogin(email: string, password: string): Promise<{ success: boolean; token?: string; admin?: AdminUser; error?: string }> {
-  const isHealthy = await checkBackendHealth()
-  if (isHealthy) {
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-      const data = await res.json()
-      if (res.ok && data.success) {
-        return { success: true, token: data.token, admin: data.admin }
-      }
-      return { success: false, error: data.error || 'Authentication failed' }
-    } catch {
-      // Fallback to local check
-    }
-  }
-
-  // Local demo fallback
-  if (email.trim().toLowerCase() === 'admin@schemesathi.in' && password === 'Admin@12345') {
-    return {
-      success: true,
-      token: 'mock-admin-token-' + Date.now(),
-      admin: { id: 1, email: 'admin@schemesathi.in', name: 'System Administrator', role: 'super_admin' }
-    }
-  }
-
-  return { success: false, error: 'Invalid admin credentials' }
 }
 
 export async function getStats(): Promise<SchemeStats> {
