@@ -12,7 +12,6 @@ import { EligibilityForm, type FormProfileData } from './components/EligibilityF
 import { EligibilityDashboard } from './components/EligibilityDashboard'
 import { ExploreSchemes } from './components/ExploreSchemes'
 import { PersonalizedDashboard } from './components/PersonalizedDashboard'
-import { LiveUpdates } from './components/LiveUpdates'
 import { HowItWorks } from './components/HowItWorks'
 import { WhyChooseSection } from './components/WhyChooseSection'
 import { FAQSection } from './components/FAQSection'
@@ -302,8 +301,6 @@ function App() {
           selectedDomainIds={selectedDomainIds}
           lang={lang}
         />
-
-        <LiveUpdates selectedDomainIds={selectedDomainIds} lang={lang} />
 
         {/* 5. Comprehensive Scheme Catalog & Explorer */}
         <ExploreSchemes

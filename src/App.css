@@ -2250,31 +2250,27 @@ h1, h2, h3, p { margin-top: 0; }
   .domain-chip { max-width: 100%; white-space: normal; text-align: left; }
 }
 
-.personalized-dashboard,
-.live-updates-section {
+.personalized-dashboard {
   margin-top: 40px;
   padding: 24px;
   border: 1px solid #e6eadf;
   border-radius: 10px;
   background: #fff;
 }
-.dashboard-section-heading,
-.live-section-heading {
+.dashboard-section-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 18px;
 }
-.dashboard-section-heading h2,
-.live-section-heading h2 {
+.dashboard-section-heading h2 {
   margin: 0 0 7px;
   color: #2c4035;
   font-family: Manrope, sans-serif;
   font-size: 25px;
 }
-.dashboard-section-heading p:not(.section-kicker),
-.live-section-heading p:not(.section-kicker) {
+.dashboard-section-heading p:not(.section-kicker) {
   margin: 0;
   color: #7d8b7d;
   font-size: 11px;
@@ -2365,174 +2361,6 @@ h1, h2, h3, p { margin-top: 0; }
 .dashboard-privacy-note {
   margin: 13px 0 0;
 }
-.live-updates-section {
-  background: #fdfefa;
-}
-.discovery-notification-opt-in {
-  margin: 0 0 16px;
-}
-.discovery-notification-opt-in button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid #dce5d8;
-  border-radius: 6px;
-  background: #fff;
-  color: #456b4e;
-  padding: 8px 11px;
-  font: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.discovery-notification-opt-in button:focus-visible {
-  outline: 2px solid #527f59;
-  outline-offset: 2px;
-}
-.discovery-notification-opt-in p {
-  margin: 7px 0 0;
-  color: #68796a;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.live-opportunity-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 13px;
-}
-.live-opportunity-card {
-  min-width: 0;
-  border: 1px solid #e3e9df;
-  border-radius: 9px;
-  background: #fff;
-  padding: 16px;
-}
-.live-card-topline,
-.live-card-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.live-card-topline {
-  color: #6d7e6e;
-  font-size: 10px;
-}
-.live-status-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 23px;
-  border-radius: 16px;
-  background: #edf3e7;
-  color: #456a4d;
-  padding: 3px 9px;
-  font-size: 9px;
-  font-weight: 700;
-}
-.live-status-closed,
-.live-status-verification_required {
-  background: #f6eee5;
-  color: #886b49;
-}
-.live-opportunity-card h3 {
-  margin: 11px 0 4px;
-  color: #304638;
-  font-size: 16px;
-  line-height: 1.4;
-}
-.live-organization {
-  margin: 0;
-  color: #778579;
-  font-size: 10px;
-}
-.live-domain-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin: 9px 0;
-}
-.live-domain-tags span {
-  border-radius: 12px;
-  background: #f0f4eb;
-  color: #5b735c;
-  padding: 4px 7px;
-  font-size: 9px;
-}
-.live-description {
-  color: #59695c;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.live-facts {
-  display: grid;
-  gap: 8px;
-  margin: 12px 0;
-}
-.live-facts div {
-  display: grid;
-  grid-template-columns: minmax(100px, 0.7fr) 1.3fr;
-  gap: 8px;
-  border-top: 1px solid #f0f2ed;
-  padding-top: 7px;
-}
-.live-facts dt {
-  color: #7c897d;
-  font-size: 9px;
-  font-weight: 700;
-}
-.live-facts dd {
-  margin: 0;
-  color: #536456;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.live-card-actions {
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  border-top: 1px solid #edf1e8;
-  padding-top: 11px;
-}
-.live-card-actions a {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #456b4e;
-  font-size: 10px;
-  font-weight: 700;
-  text-decoration: none;
-}
-.live-card-actions a:hover,
-.live-card-actions a:focus-visible {
-  text-decoration: underline;
-}
-.live-card-actions .live-apply-link {
-  border-radius: 5px;
-  background: #385d46;
-  color: #fff;
-  padding: 7px 9px;
-}
-.live-updates-state {
-  border: 1px dashed #dce5d8;
-  border-radius: 8px;
-  background: #fff;
-  color: #68796a;
-  padding: 20px;
-  font-size: 11px;
-  line-height: 1.6;
-  text-align: center;
-}
-.live-updates-error {
-  border-color: #e8d8ca;
-  background: #fffaf5;
-  color: #8a674e;
-}
-.live-updates-disclaimer {
-  margin: 12px 0 0;
-  color: #859184;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
 @media (max-width: 1050px) {
   .mobile-menu {
     display: grid;
@@ -2581,8 +2409,7 @@ h1, h2, h3, p { margin-top: 0; }
 }
 
 @media (max-width: 768px) {
-  .personalized-dashboard,
-  .live-updates-section {
+  .personalized-dashboard {
     padding: 16px;
   }
   .dashboard-section-heading {
@@ -2596,8 +2423,7 @@ h1, h2, h3, p { margin-top: 0; }
   .dashboard-summary-grid {
     grid-template-columns: 1fr;
   }
-  .dashboard-content-grid,
-  .live-opportunity-grid {
+  .dashboard-content-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -55,9 +55,6 @@ export function Navbar({
         <a href="#dashboard" onClick={() => setMobileMenuOpen(false)}>
           {lang === 'te' ? 'డాష్‌బోర్డ్' : 'Dashboard'}
         </a>
-        <a href="#live-updates" onClick={() => setMobileMenuOpen(false)}>
-          {lang === 'te' ? 'తాజా సమాచారం' : 'Live updates'}
-        </a>
         <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>
           {t.navHowItWorks}
         </a>

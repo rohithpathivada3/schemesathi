@@ -32,9 +32,9 @@ Duplicate identity uses a normalized title and the verified organization's domai
 
 The public app exposes the twelve taxonomy domains, supports multi-select and "All domains," and applies the selection to both the scheme catalog and eligibility results. Legacy catalog entries are mapped from their existing categories and tags; records without a reliable match appear under "Other Government & Private Benefits." Preferences contain only domain IDs and stay in browser storage, never in the citizen profile or a network request.
 
-## Phase 6: public dashboard and live updates
+## Phase 6: public dashboard
 
-The public dashboard summarizes domain-matched schemes, locally saved schemes, verified date-based deadlines, and the five most recently viewed catalog entries. It does not claim eligibility from domain matches. Live updates load only from `/api/discovery/opportunities`; they have explicit loading, empty, unconfigured, and failure states and never fall back to static records as if they were new announcements. The endpoint is added with the server-side synchronization work; until then the UI reports that live discovery is unavailable.
+The public dashboard summarizes domain-matched schemes, locally saved schemes, verified date-based deadlines, and the five most recently viewed catalog entries. It does not claim eligibility from domain matches. The live updates section is omitted from the public interface while no verified opportunities are available; it can be restored once the feed contains current, source-backed announcements.
 
 ## Phase 7: discovery API and scheduled synchronization
 
@@ -44,7 +44,7 @@ The local Node server mounts the same discovery and notification handlers behind
 
 `/api/cron/sync` requires the server-only `CRON_SECRET` bearer token. The Vercel Cron schedule invokes it daily at 03:00 UTC, which is compatible with Vercel Hobby's once-per-day schedule limit. It collects only enabled, verified API/RSS sources; honors each source's refresh interval and hourly request cap; retries one transient source failure; runs at most five sources per invocation with bounded concurrency; and records per-source outcomes, ETags, timestamps, and safe error summaries. Candidate processing uses the Phase 4 verification pipeline; new changes are not published unless that pipeline verifies them.
 
-New verified publications create a public notice event with only the scheme title and official source link. Browser alerts are opt-in through the browser permission prompt, saved locally, domain-filtered locally, and polled only while the tab is open. The app does not collect email addresses, create push subscriptions, or send citizen data to source services.
+New verified publications create a public notice event with only the scheme title and official source link. The app does not collect email addresses, create push subscriptions, or send citizen data to source services.
 
 The source registry must remain empty until permitted official feeds are independently reviewed and entered. The Vercel schedule requires a configured `CRON_SECRET` and a deployment plan that supports Cron Jobs; without that configuration, synchronization remains unavailable and the public API reports Supabase configuration errors as JSON.
 
